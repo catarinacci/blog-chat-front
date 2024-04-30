@@ -3,19 +3,19 @@ import {
   Box,
   Modal,
   Typography,
-  Stack,
+  //Stack,
   IconButton,
   Grid,
   TextField,
-  FormControlLabel,
-  Checkbox,
+  //FormControlLabel,
+  //Checkbox,
   Button,
   InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
+  //   FormControl,
+  //   InputLabel,
+  //   Select,
+  //   MenuItem,
+  //   FormHelperText,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
@@ -32,34 +32,19 @@ import { openModalRegister } from "@/app/store/miSlice";
 import Link from "next/link";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 export default function RegisterModal() {
   //const dispach = useDispatch();
-  const showRegisterModal = useSelector(
-    (state) => state.showModalRegister.value
-  );
-  const dispach = useDispatch();
-  const [showPassword, setShowPassword] = useState(false);
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-  const [age, setAge] = useState('');
 
-  const handleChange = (event) => {
-    setAge(event.target.value);
-  };
+  //   const [age, setAge] = useState('');
+
+  //   const handleChange = (event) => {
+  //     setAge(event.target.value);
+  //   };
   //   const router = useRouter();
-  //   const [{ showRegisterModal }, coreDispatch] = useCore();
-
-  //   //states
-  //   const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false);
-  //   const [step, setStep] = useState<number>(1);
-  //   const [userData, setUserData] = useState<any | null>(null);
-  //   const [resetForms, setResetForms] = useState<boolean>(false);
-  //   const [step1Error, setStep1Error] = useState<null | {
-  //     fieldName: "email";
-  //     error: string;
-  //   }>(null);
 
   //   const submit = async () => {
   //     setLoadingSubmit(true);
@@ -146,6 +131,59 @@ export default function RegisterModal() {
   //         // eslint-disable-next-line react-hooks/exhaustive-deps
   //   }, [showRegisterModal]);
 
+  const showRegisterModal = useSelector(
+    (state) => state.showModalRegister.value
+  );
+  const dispach = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const schema = yup.object().shape({
+    name: yup
+      .string()
+      .required("El nombre es obligatorio")
+      .min(3, "Debe contener al menos tres letras")
+      .max(30, "No debe contener mas de 30 letras")
+      .matches(/^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+$/i, "Debe contener solo letras"),
+    email: yup
+      .string()
+      .required("El email es requerido")
+      .email()
+      .matches(/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i,
+        "Formato de email incorrecto" 
+      ),
+    password: yup
+      .string()
+      .required("El password es requerido")
+      .min(8, "Debe contener mas de 8 caracteres")
+      .max(20, "No debe contener mas de 20 caracteres")
+      .matches(/^[a-zA-Z0-9]+$/,
+        "Formato password incorrecto, no de contener caracteres especiales como $@$!%*?& ni espacios en blanco"
+      ),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    reValidateMode: "onChange",
+  });
+
+  const handlerOnChange = (e) => {
+    console.log(e.target.name);
+    console.log(e.target.value);
+    console.log("aaaa");
+  };
+
+  const [messageError, setMessageError] = useState("");
+  const onSubmit = (data) => {
+    console.log(data);
+  };
+
   return (
     <Modal
       open={showRegisterModal}
@@ -196,41 +234,58 @@ export default function RegisterModal() {
           </Typography>
         </Box>
 
-        <form sx={{ width: "100%", marginTop: 3 }} noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          sx={{ width: "100%", marginTop: 3 }}
+        >
           <Grid container spacing={2}>
-            <Grid item xs={12} s>
+            <Grid item xs={12}>
               <TextField
-                autoComplete="fname"
-                name="firstName"
+                autoComplete="name"
+                name="name"
                 variant="outlined"
-                required
+                //required
                 fullWidth
-                id="firstName"
-                label="First Name"
+                id="name"
+                label="Name"
                 autoFocus
+                //value={field.value}
+                //onChange={()=>{handlerOnChange(e)}}
+                error={errors.name?.message ? true : false}
+                helperText={errors.name?.message}
+                {...register("name")}
               />
+              {/* <p>{errors.name?.message}</p> */}
             </Grid>
             <Grid item xs={12}>
               <TextField
                 variant="outlined"
-                required
+                //required
                 fullWidth
                 id="email"
                 label="Email Address"
                 name="email"
+                autoFocus
                 autoComplete="email"
+                error={errors.email?.message ? true : false}
+                helperText={errors.email?.message}
+                {...register("email")}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 variant="outlined"
-                required
+                //required
                 fullWidth
                 name="password"
                 label="Password"
-                type={showPassword ? "" : "password"}
+                type={showPassword ? "password" : ""}
                 id="password"
                 autoComplete="current-password"
+                autoFocus
+                error={errors.password?.message ? true : false}
+                helperText={errors.password?.message}
+                {...register("password")}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -240,9 +295,9 @@ export default function RegisterModal() {
                         edge="end"
                       >
                         {showPassword ? (
-                          <RemoveRedEyeIcon />
-                        ) : (
                           <VisibilityOffIcon />
+                        ) : (
+                          <RemoveRedEyeIcon />
                         )}
                       </IconButton>
                     </InputAdornment>
@@ -250,9 +305,9 @@ export default function RegisterModal() {
                 }}
               />
             </Grid>
-            <Grid item xs={12}>
-              <FormControl required sx={{ m: 1, minWidth: 120 }}>
-                <InputLabel id="demo-simple-select-required-label">
+            {/* <Grid item xs={12}>
+              <FormControl required fullWidth>
+                <InputLabel id="country">
                   País
                 </InputLabel>
                 <Select
@@ -271,7 +326,7 @@ export default function RegisterModal() {
                 </Select>
                 <FormHelperText>Required</FormHelperText>
               </FormControl>
-            </Grid>
+            </Grid> */}
           </Grid>
           <Button
             type="submit"
